@@ -87,7 +87,7 @@ export function PartEditForm({ part }: { part: Part }) {
         <button
           type="submit"
           disabled={pending}
-          className="bg-slate-900 text-white rounded-md px-3 py-1.5 text-sm font-medium hover:bg-slate-800 disabled:opacity-50 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-200"
+          className="bg-brand text-white rounded-md px-3 py-1.5 text-sm font-medium hover:bg-brand-dark disabled:opacity-50 dark:bg-brand dark:text-white dark:hover:bg-brand-dark"
         >
           {pending ? "Saving…" : "Save"}
         </button>
@@ -135,7 +135,7 @@ export function AdjustStockForm({ partId }: { partId: string }) {
         <button
           type="submit"
           disabled={pending}
-          className="bg-slate-900 text-white rounded-md px-3 py-1.5 text-sm font-medium hover:bg-slate-800 disabled:opacity-50 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-200"
+          className="bg-brand text-white rounded-md px-3 py-1.5 text-sm font-medium hover:bg-brand-dark disabled:opacity-50 dark:bg-brand dark:text-white dark:hover:bg-brand-dark"
         >
           {pending ? "Saving…" : "Apply adjustment"}
         </button>

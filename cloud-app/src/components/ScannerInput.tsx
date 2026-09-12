@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
 
 // A text field tuned for handheld USB/Bluetooth "keyboard wedge" barcode
 // scanners: they just type the scanned code followed by Enter, exactly
@@ -9,19 +9,22 @@ import { useEffect, useRef, useState } from "react";
 // button, so the counter never needs a mouse, and (2) stealing focus back
 // after a scan/click so the *next* scan always lands here without the
 // operator having to click into the field again.
-export default function ScannerInput({
-  onScan,
-  placeholder = "Scan or type a barcode, then press Enter",
-  autoFocus = true,
-  disabled = false,
-}: {
-  onScan: (code: string) => void;
-  placeholder?: string;
-  autoFocus?: boolean;
-  disabled?: boolean;
-}) {
+//
+// Forwards a ref (typed as HTMLInputElement, so `ref.current?.focus()`
+// works) for the rare case a parent needs to move focus here itself —
+// e.g. chaining two scan fields where the second one isn't mounted fresh.
+const ScannerInput = forwardRef<
+  HTMLInputElement,
+  {
+    onScan: (code: string) => void;
+    placeholder?: string;
+    autoFocus?: boolean;
+    disabled?: boolean;
+  }
+>(function ScannerInput({ onScan, placeholder = "Scan or type a barcode, then press Enter", autoFocus = true, disabled = false }, forwardedRef) {
   const [value, setValue] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
+  useImperativeHandle(forwardedRef, () => inputRef.current as HTMLInputElement);
 
   useEffect(() => {
     if (autoFocus) inputRef.current?.focus();
@@ -64,4 +67,6 @@ export default function ScannerInput({
       className="w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 px-3 py-3 text-lg font-mono focus:outline-none focus:ring-2 focus:ring-slate-400 dark:focus:ring-slate-600 disabled:opacity-60"
     />
   );
-}
+});
+
+export default ScannerInput;

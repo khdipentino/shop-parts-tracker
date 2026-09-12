@@ -119,7 +119,7 @@ export default function ReceivePage() {
             <button
               type="submit"
               disabled={submitting}
-              className="bg-slate-900 text-white rounded-md px-4 py-2 text-sm font-medium hover:bg-slate-800 disabled:opacity-50 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-200"
+              className="bg-brand text-white rounded-md px-4 py-2 text-sm font-medium hover:bg-brand-dark disabled:opacity-50 dark:bg-brand dark:text-white dark:hover:bg-brand-dark"
             >
               {submitting ? "Logging…" : "Log receipt"}
             </button>

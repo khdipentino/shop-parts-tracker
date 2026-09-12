@@ -46,6 +46,26 @@ export async function requestAccess(_prevState: unknown, formData: FormData) {
   redirect("/pending");
 }
 
+// Quick sign-in: scan an ID badge (resolves to an email via a narrowly-
+// scoped database function, since the visitor isn't authenticated yet),
+// then scan a password barcode and sign in with it exactly like typing an
+// email+password would — same real account, same session, same RLS. The
+// barcode is just a different way of entering the same credentials.
+export async function barcodeSignIn(staffCode: string, passwordCode: string) {
+  if (!staffCode || !passwordCode) return { error: "Scan both your ID badge and your password code." };
+
+  const supabase = await createClient();
+  const { data: email, error: lookupError } = await supabase.rpc("get_email_for_staff_code", {
+    p_staff_code: staffCode,
+  });
+  if (lookupError || !email) return { error: "Unrecognized ID badge." };
+
+  const { error } = await supabase.auth.signInWithPassword({ email, password: passwordCode });
+  if (error) return { error: "Incorrect password barcode." };
+
+  redirect("/");
+}
+
 export async function signOut() {
   const supabase = await createClient();
   await supabase.auth.signOut();

@@ -15,6 +15,8 @@ export interface Database {
         Row: {
           id: string;
           full_name: string;
+          email: string | null;
+          staff_code: string | null;
           app_role: AppRole;
           active: boolean;
           requested_at: string;
@@ -25,6 +27,8 @@ export interface Database {
         Insert: {
           id: string;
           full_name: string;
+          email?: string | null;
+          staff_code?: string | null;
           app_role?: AppRole;
           active?: boolean;
           requested_at?: string;
@@ -100,7 +104,8 @@ export interface Database {
           id: string;
           invoice_number: number;
           employee_id: string;
-          work_order_number: string | null;
+          work_order_number: string;
+          asset_id: string;
           created_by: string | null;
           created_at: string;
           voided: boolean;
@@ -112,7 +117,8 @@ export interface Database {
           id?: string;
           invoice_number?: number;
           employee_id: string;
-          work_order_number?: string | null;
+          work_order_number: string;
+          asset_id: string;
           created_by?: string | null;
           created_at?: string;
           voided?: boolean;
@@ -224,10 +230,15 @@ export interface Database {
       create_issue: {
         Args: {
           p_employee_id: string;
-          p_work_order_number: string | null;
+          p_work_order_number: string;
+          p_asset_id: string;
           p_items: { part_id: string; quantity: number }[];
         };
         Returns: string;
+      };
+      get_email_for_staff_code: {
+        Args: { p_staff_code: string };
+        Returns: string | null;
       };
       create_return: {
         Args: {

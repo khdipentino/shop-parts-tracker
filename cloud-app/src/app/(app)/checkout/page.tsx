@@ -16,6 +16,7 @@ export default function CheckoutPage() {
 
   const [employee, setEmployee] = useState<Employee | null>(null);
   const [workOrder, setWorkOrder] = useState("");
+  const [assetId, setAssetId] = useState("");
   const [cart, setCart] = useState<CartLine[]>([]);
   const [message, setMessage] = useState<{ text: string; tone: "error" | "info" } | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -72,17 +73,21 @@ export default function CheckoutPage() {
   function startOver() {
     setEmployee(null);
     setWorkOrder("");
+    setAssetId("");
     setCart([]);
     setMessage(null);
   }
 
+  const canComplete = cart.length > 0 && workOrder.trim() !== "" && assetId.trim() !== "";
+
   async function handleComplete() {
-    if (!employee || cart.length === 0) return;
+    if (!employee || !canComplete) return;
     setSubmitting(true);
     setMessage(null);
     const result = await issueParts(
       employee.id,
       workOrder,
+      assetId,
       cart.map((l) => ({ part_id: l.part.id, quantity: l.quantity }))
     );
     setSubmitting(false);
@@ -133,15 +138,32 @@ export default function CheckoutPage() {
       {employee && (
         <>
           <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 space-y-3">
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
-              Work order / vehicle # <span className="text-slate-400 font-normal">(optional)</span>
-            </label>
-            <input
-              value={workOrder}
-              onChange={(e) => setWorkOrder(e.target.value)}
-              placeholder="e.g. WO-4471"
-              className="w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400 dark:focus:ring-slate-600"
-            />
+            <div className="grid sm:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                  Work order number <span className="text-red-500">*</span>
+                </label>
+                <input
+                  value={workOrder}
+                  onChange={(e) => setWorkOrder(e.target.value)}
+                  placeholder="e.g. WO-4471"
+                  required
+                  className="w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400 dark:focus:ring-slate-600"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                  Asset ID <span className="text-red-500">*</span>
+                </label>
+                <input
+                  value={assetId}
+                  onChange={(e) => setAssetId(e.target.value)}
+                  placeholder="e.g. VEH-2214"
+                  required
+                  className="w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400 dark:focus:ring-slate-600"
+                />
+              </div>
+            </div>
           </div>
 
           <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 space-y-3">
@@ -198,8 +220,8 @@ export default function CheckoutPage() {
           <div className="flex items-center gap-3">
             <button
               onClick={handleComplete}
-              disabled={cart.length === 0 || submitting}
-              className="bg-slate-900 text-white rounded-md px-4 py-2.5 text-sm font-medium hover:bg-slate-800 disabled:opacity-50 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-200"
+              disabled={!canComplete || submitting}
+              className="bg-brand text-white rounded-md px-4 py-2.5 text-sm font-medium hover:bg-brand-dark disabled:opacity-50 dark:bg-brand dark:text-white dark:hover:bg-brand-dark"
             >
               {submitting ? "Completing…" : "Complete & print receipt"}
             </button>

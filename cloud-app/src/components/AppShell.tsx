@@ -35,16 +35,16 @@ export default function AppShell({
 
   function linkClass(href: string) {
     const active = pathname === href || (href !== "/dashboard" && pathname.startsWith(href));
-    return `block px-3 py-2 rounded-md text-sm transition-colors ${
+    return `block px-3 py-2 rounded-md text-sm transition-colors border-l-4 ${
       active
-        ? "bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 font-medium"
-        : "text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/60"
+        ? "bg-brand/10 dark:bg-brand/20 text-brand dark:text-white font-medium border-accent"
+        : "text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/60 border-transparent"
     }`;
   }
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
-      <header className="no-print sticky top-0 z-30 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
+      <header className="no-print sticky top-0 z-30 bg-white dark:bg-slate-900 border-b-2 border-accent">
         <div className="px-3 sm:px-4 py-3 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2 sm:gap-3 min-w-0">
             <button
@@ -56,7 +56,7 @@ export default function AppShell({
                 <path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
               </svg>
             </button>
-            <span className="font-semibold text-slate-900 dark:text-slate-100 truncate text-sm sm:text-base">
+            <span className="font-semibold text-brand dark:text-white truncate text-sm sm:text-base">
               Shop Parts Tracker
             </span>
           </div>

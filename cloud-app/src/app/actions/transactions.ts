@@ -32,15 +32,19 @@ export async function receivePart(_prevState: unknown, formData: FormData) {
 export async function issueParts(
   employeeId: string,
   workOrderNumber: string,
+  assetId: string,
   items: CartItem[]
 ): Promise<{ invoiceId?: string; error?: string }> {
   if (!employeeId) return { error: "Scan or select an employee first." };
+  if (!workOrderNumber.trim()) return { error: "Work order number is required." };
+  if (!assetId.trim()) return { error: "Asset ID is required." };
   if (!items.length) return { error: "Add at least one part before completing the receipt." };
 
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("create_issue", {
     p_employee_id: employeeId,
-    p_work_order_number: workOrderNumber || null,
+    p_work_order_number: workOrderNumber,
+    p_asset_id: assetId,
     p_items: items,
   });
 

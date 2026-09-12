@@ -28,7 +28,7 @@ export default function EmployeeBadgePage() {
       <div className="no-print flex items-center gap-3">
         <button
           onClick={() => window.print()}
-          className="bg-slate-900 text-white rounded-md px-4 py-2 text-sm font-medium hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-200"
+          className="bg-brand text-white rounded-md px-4 py-2 text-sm font-medium hover:bg-brand-dark dark:bg-brand dark:text-white dark:hover:bg-brand-dark"
         >
           Print badge
         </button>

@@ -27,7 +27,7 @@ export default async function PartsPage({
         <h1 className="text-xl font-semibold text-slate-900 dark:text-slate-100">Parts</h1>
         <Link
           href="/parts/new"
-          className="bg-slate-900 text-white rounded-md px-3 py-2 text-sm font-medium hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-200"
+          className="bg-brand text-white rounded-md px-3 py-2 text-sm font-medium hover:bg-brand-dark dark:bg-brand dark:text-white dark:hover:bg-brand-dark"
         >
           + New part
         </Link>

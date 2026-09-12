@@ -21,7 +21,7 @@ export default function ApproveButtons({ userId }: { userId: string }) {
       <button
         disabled={busy !== null}
         onClick={() => approve("staff")}
-        className="text-sm bg-slate-900 text-white rounded-md px-3 py-1.5 hover:bg-slate-800 disabled:opacity-50 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-200"
+        className="text-sm bg-brand text-white rounded-md px-3 py-1.5 hover:bg-brand-dark disabled:opacity-50 dark:bg-brand dark:text-white dark:hover:bg-brand-dark"
       >
         {busy === "staff" ? "…" : "Approve as staff"}
       </button>

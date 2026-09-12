@@ -11,7 +11,7 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
   const { data: invoice } = await supabase
     .from("invoices")
     .select(
-      "id, invoice_number, work_order_number, created_at, voided, void_reason, employee:employees(first_name, last_name, badge_code), creator:profiles!invoices_created_by_fkey(full_name)"
+      "id, invoice_number, work_order_number, asset_id, created_at, voided, void_reason, employee:employees(first_name, last_name, badge_code), creator:profiles!invoices_created_by_fkey(full_name)"
     )
     .eq("id", id)
     .maybeSingle();
@@ -37,7 +37,8 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
           </h1>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
             {invoice.employee ? `${invoice.employee.first_name} ${invoice.employee.last_name}` : "Unknown employee"}
-            {invoice.work_order_number ? ` · ${invoice.work_order_number}` : ""} ·{" "}
+            {" · "}
+            {invoice.work_order_number} · Asset {invoice.asset_id} ·{" "}
             {format(new Date(invoice.created_at), "MMM d, yyyy h:mm a")}
           </p>
           {invoice.voided && invoice.void_reason && (
