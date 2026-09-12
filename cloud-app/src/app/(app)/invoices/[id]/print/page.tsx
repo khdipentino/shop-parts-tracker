@@ -11,6 +11,7 @@ type Item = {
   id: string;
   quantity: number;
   returned_quantity: number;
+  unit_cost_snapshot: number | null;
   part: { part_number: string; description: string } | null;
 };
 type Invoice = {
@@ -25,6 +26,8 @@ type Invoice = {
 export function receiptCode(invoiceNumber: number) {
   return `INV-${String(invoiceNumber).padStart(6, "0")}`;
 }
+
+const currency = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" });
 
 export default function InvoicePrintPage() {
   const params = useParams<{ id: string }>();
@@ -45,7 +48,7 @@ export default function InvoicePrintPage() {
           .maybeSingle(),
         supabase
           .from("invoice_items")
-          .select("id, quantity, returned_quantity, part:parts(part_number, description)")
+          .select("id, quantity, returned_quantity, unit_cost_snapshot, part:parts(part_number, description)")
           .eq("invoice_id", params.id),
       ]);
       setInvoice(inv);
@@ -63,9 +66,9 @@ export default function InvoicePrintPage() {
 
   if (!invoice) return null;
 
-  const totalIssued = items.reduce((s, i) => s + i.quantity, 0);
-  const totalReturned = items.reduce((s, i) => s + i.returned_quantity, 0);
-  const anyReturned = totalReturned > 0;
+  const anyReturned = items.some((i) => i.returned_quantity > 0);
+  const anyMissingPrice = items.some((i) => i.unit_cost_snapshot == null);
+  const grandTotal = items.reduce((sum, i) => sum + (i.quantity - i.returned_quantity) * (i.unit_cost_snapshot ?? 0), 0);
 
   return (
     <div className="space-y-4">
@@ -120,36 +123,54 @@ export default function InvoicePrintPage() {
           <thead>
             <tr className="text-left text-slate-500 text-xs uppercase">
               <th className="py-1 font-medium">Part</th>
-              <th className="py-1 font-medium text-right">Issued</th>
-              {anyReturned && <th className="py-1 font-medium text-right">Returned</th>}
-              {anyReturned && <th className="py-1 font-medium text-right">Net</th>}
+              <th className="py-1 font-medium text-right">Qty</th>
+              <th className="py-1 font-medium text-right">Price</th>
+              <th className="py-1 font-medium text-right">Amount</th>
             </tr>
           </thead>
           <tbody>
-            {items.map((i) => (
-              <tr key={i.id} className="border-t border-dashed border-slate-300">
-                <td className="py-1">
-                  {i.part?.description}
-                  <span className="text-slate-500"> ({i.part?.part_number})</span>
-                </td>
-                <td className="py-1 text-right">{i.quantity}</td>
-                {anyReturned && <td className="py-1 text-right text-slate-500">{i.returned_quantity || ""}</td>}
-                {anyReturned && <td className="py-1 text-right font-medium">{i.quantity - i.returned_quantity}</td>}
-              </tr>
-            ))}
+            {items.map((i) => {
+              const netQty = i.quantity - i.returned_quantity;
+              const unitPrice = i.unit_cost_snapshot;
+              const amount = netQty * (unitPrice ?? 0);
+              return (
+                <tr key={i.id} className="border-t border-dashed border-slate-300">
+                  <td className="py-1">
+                    {i.part?.description}
+                    <span className="text-slate-500"> ({i.part?.part_number})</span>
+                    {i.returned_quantity > 0 && (
+                      <span className="block text-xs text-slate-500">
+                        issued {i.quantity}, returned {i.returned_quantity}
+                      </span>
+                    )}
+                  </td>
+                  <td className="py-1 text-right align-top">{netQty}</td>
+                  <td className="py-1 text-right align-top">{unitPrice != null ? currency.format(unitPrice) : "—"}</td>
+                  <td className="py-1 text-right align-top">{currency.format(amount)}</td>
+                </tr>
+              );
+            })}
           </tbody>
           <tfoot>
-            <tr className="border-t-2 border-black font-medium">
-              <td className="py-1">Total</td>
-              <td className="py-1 text-right">{totalIssued}</td>
-              {anyReturned && <td className="py-1 text-right text-slate-500">{totalReturned}</td>}
-              {anyReturned && <td className="py-1 text-right">{totalIssued - totalReturned}</td>}
+            <tr className="border-t-2 border-black font-bold text-base">
+              <td className="py-2" colSpan={3}>
+                {anyReturned ? "Total due (after returns)" : "Total due"}
+              </td>
+              <td className="py-2 text-right">{currency.format(grandTotal)}</td>
             </tr>
           </tfoot>
         </table>
 
+        {anyMissingPrice && (
+          <p className="text-xs text-amber-700 mt-1">
+            One or more parts has no price set — its amount above shows as $0.00. Set a unit cost on that part to
+            fix future receipts.
+          </p>
+        )}
+
         <p className="text-xs text-slate-500 mt-6 text-center border-t border-dashed border-slate-300 pt-3">
-          Attach this receipt to work order {invoice.work_order_number} to charge asset {invoice.asset_id}.
+          Attach this receipt to work order {invoice.work_order_number} to charge asset {invoice.asset_id} for the
+          amount above.
           <br />
           Keep this receipt — scan it at the counter to process any return.
         </p>

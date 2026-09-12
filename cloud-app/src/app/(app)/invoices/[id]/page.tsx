@@ -20,8 +20,14 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
 
   const { data: items } = await supabase
     .from("invoice_items")
-    .select("id, quantity, returned_quantity, part:parts(part_number, description)")
+    .select("id, quantity, returned_quantity, unit_cost_snapshot, part:parts(part_number, description)")
     .eq("invoice_id", id);
+
+  const currency = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" });
+  const total = (items ?? []).reduce(
+    (sum, i) => sum + (i.quantity - i.returned_quantity) * (i.unit_cost_snapshot ?? 0),
+    0
+  );
 
   return (
     <div className="space-y-6">
@@ -57,6 +63,8 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
               <th className="px-4 py-2 font-medium">Part</th>
               <th className="px-4 py-2 font-medium">Issued</th>
               <th className="px-4 py-2 font-medium">Returned</th>
+              <th className="px-4 py-2 font-medium">Price</th>
+              <th className="px-4 py-2 font-medium">Amount</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -68,9 +76,23 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
                 </td>
                 <td className="px-4 py-2 text-slate-700 dark:text-slate-300">{i.quantity}</td>
                 <td className="px-4 py-2 text-slate-500 dark:text-slate-400">{i.returned_quantity}</td>
+                <td className="px-4 py-2 text-slate-500 dark:text-slate-400">
+                  {i.unit_cost_snapshot != null ? currency.format(i.unit_cost_snapshot) : "—"}
+                </td>
+                <td className="px-4 py-2 text-slate-700 dark:text-slate-300">
+                  {currency.format((i.quantity - i.returned_quantity) * (i.unit_cost_snapshot ?? 0))}
+                </td>
               </tr>
             ))}
           </tbody>
+          <tfoot>
+            <tr className="border-t-2 border-slate-300 dark:border-slate-700 font-medium">
+              <td className="px-4 py-2" colSpan={4}>
+                Total due
+              </td>
+              <td className="px-4 py-2 text-slate-900 dark:text-slate-100">{currency.format(total)}</td>
+            </tr>
+          </tfoot>
         </table>
       </div>
 
