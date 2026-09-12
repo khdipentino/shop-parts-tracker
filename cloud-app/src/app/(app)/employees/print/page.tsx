@@ -50,7 +50,6 @@ export default function PrintAllBadgesPage() {
         {employees.map((e) => (
           <div key={e.id} className="border border-slate-300 rounded-md p-2 flex flex-col items-center text-center break-inside-avoid">
             <Barcode value={e.badge_code} height={36} />
-            <p className="text-xs font-mono mt-0.5">{e.badge_code}</p>
             <p className="text-sm font-medium mt-1">
               {e.last_name}, {e.first_name}
             </p>
