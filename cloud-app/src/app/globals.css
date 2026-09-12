@@ -41,3 +41,23 @@ body {
     color: #000;
   }
 }
+
+/* A generated password barcode has to be printable from right where it's
+   shown (see UserRow.tsx) without navigating to a separate page — since
+   resetting your OWN password signs you out immediately, a page
+   navigation could land you at /login before the code ever renders. This
+   isolates one element for printing regardless of where it's nested,
+   toggled via a body class right before window.print(). */
+body.printing-isolated * {
+  visibility: hidden;
+}
+body.printing-isolated #print-isolated,
+body.printing-isolated #print-isolated * {
+  visibility: visible;
+}
+body.printing-isolated #print-isolated {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+}
