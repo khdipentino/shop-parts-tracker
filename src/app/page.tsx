@@ -1,19 +1,17 @@
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { countStaff } from "@/lib/db";
+import { getCurrentStaff } from "@/lib/auth";
+
+// This page's very first branch (staff count) can be true at build time
+// and false forever after — never let Next bake that in as a static
+// prerender. Every visit must re-check current state.
+export const dynamic = "force-dynamic";
 
 export default async function RootPage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
+  if (countStaff() === 0) redirect("/setup");
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("app_role, active")
-    .eq("id", user.id)
-    .maybeSingle();
+  const staff = await getCurrentStaff();
+  if (!staff) redirect("/login");
 
-  if (!profile || !profile.active || profile.app_role === "pending") redirect("/pending");
   redirect("/dashboard");
 }

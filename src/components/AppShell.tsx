@@ -28,10 +28,7 @@ export default function AppShell({
     { href: "/employees", label: "Employees" },
     { href: "/invoices", label: "Receipt history" },
   ];
-  const adminNav: NavItem[] = [
-    { href: "/admin/pending-requests", label: "Pending requests" },
-    { href: "/admin/users", label: "Manage staff" },
-  ];
+  const adminNav: NavItem[] = [{ href: "/admin/staff", label: "Manage staff" }];
 
   function linkClass(href: string) {
     const active = pathname === href || (href !== "/dashboard" && pathname.startsWith(href));

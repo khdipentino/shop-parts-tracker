@@ -1,11 +1,19 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { createClient } from "@/lib/supabase/server";
+import { getCurrentStaff } from "@/lib/auth";
+import * as db from "@/lib/db";
 
 export type CartItem = { part_id: string; quantity: number };
 
+function errorMessage(err: unknown) {
+  return err instanceof Error ? err.message : "Something went wrong.";
+}
+
 export async function receivePart(_prevState: unknown, formData: FormData) {
+  const staff = await getCurrentStaff();
+  if (!staff) return { error: "Not signed in." };
+
   const partId = String(formData.get("part_id") || "");
   const quantity = Number(formData.get("quantity") || 0);
   const notes = String(formData.get("notes") || "").trim() || null;
@@ -14,19 +22,15 @@ export async function receivePart(_prevState: unknown, formData: FormData) {
     return { error: "A part and a positive quantity are required." };
   }
 
-  const supabase = await createClient();
-  const { error } = await supabase.from("transactions").insert({
-    type: "receive",
-    part_id: partId,
-    quantity,
-    notes,
-  });
-  if (error) return { error: error.message };
-
-  revalidatePath("/receive");
-  revalidatePath(`/parts/${partId}`);
-  revalidatePath("/parts");
-  return { ok: true };
+  try {
+    db.receivePart(partId, quantity, notes, staff.id);
+    revalidatePath("/receive");
+    revalidatePath(`/parts/${partId}`);
+    revalidatePath("/parts");
+    return { ok: true };
+  } catch (err) {
+    return { error: errorMessage(err) };
+  }
 }
 
 export async function issueParts(
@@ -34,21 +38,19 @@ export async function issueParts(
   workOrderNumber: string,
   items: CartItem[]
 ): Promise<{ invoiceId?: string; error?: string }> {
+  const staff = await getCurrentStaff();
+  if (!staff) return { error: "Not signed in." };
   if (!employeeId) return { error: "Scan or select an employee first." };
   if (!items.length) return { error: "Add at least one part before completing the receipt." };
 
-  const supabase = await createClient();
-  const { data, error } = await supabase.rpc("create_issue", {
-    p_employee_id: employeeId,
-    p_work_order_number: workOrderNumber || null,
-    p_items: items,
-  });
-
-  if (error) return { error: error.message };
-
-  revalidatePath("/parts");
-  revalidatePath("/invoices");
-  return { invoiceId: data as string };
+  try {
+    const invoice = db.createIssue(employeeId, workOrderNumber || null, items, staff.id);
+    revalidatePath("/parts");
+    revalidatePath("/invoices");
+    return { invoiceId: invoice.id };
+  } catch (err) {
+    return { error: errorMessage(err) };
+  }
 }
 
 export async function returnItem(
@@ -56,34 +58,59 @@ export async function returnItem(
   quantity: number,
   notes: string
 ): Promise<{ error?: string; ok?: boolean }> {
+  const staff = await getCurrentStaff();
+  if (!staff) return { error: "Not signed in." };
   if (!invoiceItemId || !quantity || quantity <= 0) {
     return { error: "A line item and a positive quantity are required." };
   }
 
-  const supabase = await createClient();
-  const { error } = await supabase.rpc("create_return", {
-    p_invoice_item_id: invoiceItemId,
-    p_quantity: quantity,
-    p_notes: notes || null,
-  });
-  if (error) return { error: error.message };
-
-  revalidatePath("/returns");
-  revalidatePath("/invoices");
-  revalidatePath("/parts");
-  return { ok: true };
+  try {
+    db.createReturn(invoiceItemId, quantity, notes || null, staff.id);
+    revalidatePath("/returns");
+    revalidatePath("/invoices");
+    revalidatePath("/parts");
+    return { ok: true };
+  } catch (err) {
+    return { error: errorMessage(err) };
+  }
 }
 
 export async function voidInvoice(invoiceId: string, reason: string) {
-  const supabase = await createClient();
-  const { error } = await supabase.rpc("void_invoice", {
-    p_invoice_id: invoiceId,
-    p_reason: reason || null,
-  });
-  if (error) return { error: error.message };
+  const staff = await getCurrentStaff();
+  if (!staff) return { error: "Not signed in." };
 
-  revalidatePath("/invoices");
-  revalidatePath(`/invoices/${invoiceId}`);
-  revalidatePath("/parts");
-  return { ok: true };
+  try {
+    db.voidInvoice(invoiceId, reason || null, staff.id);
+    revalidatePath("/invoices");
+    revalidatePath(`/invoices/${invoiceId}`);
+    revalidatePath("/parts");
+    return { ok: true };
+  } catch (err) {
+    return { error: errorMessage(err) };
+  }
+}
+
+export async function lookupEmployeeByBadge(code: string) {
+  const staff = await getCurrentStaff();
+  if (!staff) return { error: "Not signed in." };
+
+  const employee = db.getEmployeeByBadge(code);
+  if (!employee || !employee.active) return { error: `No active employee found for badge "${code}".` };
+  return { employee };
+}
+
+export async function lookupPartByBarcode(code: string) {
+  const staff = await getCurrentStaff();
+  if (!staff) return { error: "Not signed in." };
+
+  const part = db.getPartByBarcode(code);
+  if (!part || !part.active) return { error: `No active part found for barcode "${code}".` };
+  return { part };
+}
+
+export async function getOutstandingForEmployee(employeeId: string) {
+  const staff = await getCurrentStaff();
+  if (!staff) return { error: "Not signed in." };
+
+  return { items: db.getOutstandingItemsForEmployee(employeeId) };
 }

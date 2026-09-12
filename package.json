@@ -3,14 +3,15 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "predev": "node scripts/ensure-secret.mjs",
     "dev": "next dev",
+    "prebuild": "node scripts/ensure-secret.mjs",
     "build": "next build",
+    "prestart": "node scripts/ensure-secret.mjs",
     "start": "next start",
     "lint": "eslint"
   },
   "dependencies": {
-    "@supabase/ssr": "^0.12.5",
-    "@supabase/supabase-js": "^2.112.4",
     "date-fns": "^4.4.0",
     "jsbarcode": "^3.11.6",
     "next": "16.3.4",

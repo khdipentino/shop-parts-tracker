@@ -1,30 +1,15 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
 import { format } from "date-fns";
+import { getPartById, getTransactionsForPart } from "@/lib/db";
 import { PartEditForm, AdjustStockForm, ArchiveToggle } from "./PartDetailClient";
 
 export default async function PartDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const supabase = await createClient();
-
-  const { data: part } = await supabase
-    .from("parts")
-    .select("id, part_number, description, barcode_code, quantity_on_hand, reorder_point, bin_location, unit_cost, active")
-    .eq("id", id)
-    .maybeSingle();
-
+  const part = getPartById(id);
   if (!part) notFound();
 
-  const { data: history } = await supabase
-    .from("transactions")
-    .select(
-      "id, type, quantity, notes, created_at, work_order_number, employee:employees(first_name, last_name), invoice:invoices(invoice_number)"
-    )
-    .eq("part_id", id)
-    .order("created_at", { ascending: false })
-    .limit(100);
-
+  const history = getTransactionsForPart(id, 100);
   const low = part.reorder_point != null && part.quantity_on_hand <= part.reorder_point;
 
   return (
@@ -80,7 +65,7 @@ export default async function PartDetailPage({ params }: { params: Promise<{ id:
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-              {(history ?? []).map((h) => (
+              {history.map((h) => (
                 <tr key={h.id}>
                   <td className="px-4 py-2 text-slate-500 dark:text-slate-400 whitespace-nowrap">
                     {format(new Date(h.created_at), "MMM d, yyyy h:mm a")}
@@ -93,13 +78,13 @@ export default async function PartDetailPage({ params }: { params: Promise<{ id:
                   </td>
                   <td className="px-4 py-2 text-slate-700 dark:text-slate-300">
                     {h.employee ? `${h.employee.first_name} ${h.employee.last_name}` : ""}
-                    {h.invoice ? ` · #${h.invoice.invoice_number}` : ""}
+                    {h.invoice_number != null ? ` · #${h.invoice_number}` : ""}
                     {h.work_order_number ? ` · ${h.work_order_number}` : ""}
                   </td>
                   <td className="px-4 py-2 text-slate-500 dark:text-slate-400">{h.notes ?? ""}</td>
                 </tr>
               ))}
-              {(!history || history.length === 0) && (
+              {history.length === 0 && (
                 <tr>
                   <td colSpan={5} className="px-4 py-6 text-center text-slate-500 dark:text-slate-400">
                     No history yet.

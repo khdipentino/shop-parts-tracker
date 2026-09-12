@@ -1,21 +1,17 @@
-import { createClient } from "@/lib/supabase/server";
-import UserRow from "./UserRow";
+import { listStaff } from "@/lib/db";
+import { getCurrentStaff } from "@/lib/auth";
+import AddStaffForm from "./AddStaffForm";
+import StaffRow from "./StaffRow";
 
-export default async function ManageUsersPage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  const { data: users } = await supabase
-    .from("profiles")
-    .select("id, full_name, app_role, active")
-    .neq("app_role", "pending")
-    .order("full_name");
+export default async function ManageStaffPage() {
+  const staff = listStaff();
+  const me = await getCurrentStaff();
 
   return (
     <div className="space-y-6">
       <h1 className="text-xl font-semibold text-slate-900 dark:text-slate-100">Manage staff</h1>
+
+      <AddStaffForm />
 
       <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-x-auto">
         <table className="w-full text-sm">
@@ -23,18 +19,18 @@ export default async function ManageUsersPage() {
             <tr>
               <th className="px-4 py-2 font-medium">Name</th>
               <th className="px-4 py-2 font-medium">Role</th>
-              <th className="px-4 py-2 font-medium">Status</th>
+              <th className="px-4 py-2 font-medium">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-            {(users ?? []).map((u) => (
-              <UserRow
-                key={u.id}
-                userId={u.id}
-                fullName={u.full_name}
-                role={u.app_role as "staff" | "admin"}
-                active={u.active}
-                isSelf={u.id === user?.id}
+            {staff.map((s) => (
+              <StaffRow
+                key={s.id}
+                staffId={s.id}
+                fullName={s.full_name}
+                role={s.app_role}
+                active={s.active}
+                isSelf={s.id === me?.id}
               />
             ))}
           </tbody>

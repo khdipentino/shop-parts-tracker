@@ -1,9 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
-import { issueParts } from "@/app/actions/transactions";
+import { issueParts, lookupEmployeeByBadge, lookupPartByBarcode } from "@/app/actions/transactions";
 import ScannerInput from "@/components/ScannerInput";
 
 type Employee = { id: string; first_name: string; last_name: string; badge_code: string };
@@ -12,7 +11,6 @@ type CartLine = { part: Part; quantity: number };
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const supabase = useMemo(() => createClient(), []);
 
   const [employee, setEmployee] = useState<Employee | null>(null);
   const [workOrder, setWorkOrder] = useState("");
@@ -21,42 +19,31 @@ export default function CheckoutPage() {
   const [submitting, setSubmitting] = useState(false);
 
   async function handleEmployeeScan(code: string) {
-    const { data, error } = await supabase
-      .from("employees")
-      .select("id, first_name, last_name, badge_code")
-      .eq("badge_code", code)
-      .eq("active", true)
-      .maybeSingle();
-
-    if (error || !data) {
-      setMessage({ text: `No active employee found for badge "${code}".`, tone: "error" });
+    const result = await lookupEmployeeByBadge(code);
+    if (result.error || !result.employee) {
+      setMessage({ text: result.error ?? "Employee not found.", tone: "error" });
       return;
     }
-    setEmployee(data);
-    setMessage({ text: `Employee: ${data.first_name} ${data.last_name}`, tone: "info" });
+    setEmployee(result.employee);
+    setMessage({ text: `Employee: ${result.employee.first_name} ${result.employee.last_name}`, tone: "info" });
   }
 
   async function handlePartScan(code: string) {
-    const { data, error } = await supabase
-      .from("parts")
-      .select("id, part_number, description, barcode_code, quantity_on_hand")
-      .eq("barcode_code", code)
-      .eq("active", true)
-      .maybeSingle();
-
-    if (error || !data) {
-      setMessage({ text: `No active part found for barcode "${code}".`, tone: "error" });
+    const result = await lookupPartByBarcode(code);
+    if (result.error || !result.part) {
+      setMessage({ text: result.error ?? "Part not found.", tone: "error" });
       return;
     }
+    const part = result.part;
 
     setCart((prev) => {
-      const existing = prev.find((l) => l.part.id === data.id);
+      const existing = prev.find((l) => l.part.id === part.id);
       if (existing) {
-        return prev.map((l) => (l.part.id === data.id ? { ...l, quantity: l.quantity + 1 } : l));
+        return prev.map((l) => (l.part.id === part.id ? { ...l, quantity: l.quantity + 1 } : l));
       }
-      return [...prev, { part: data, quantity: 1 }];
+      return [...prev, { part, quantity: 1 }];
     });
-    setMessage({ text: `Added: ${data.description}`, tone: "info" });
+    setMessage({ text: `Added: ${part.description}`, tone: "info" });
   }
 
   function updateQuantity(partId: string, quantity: number) {

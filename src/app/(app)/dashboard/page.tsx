@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/server";
 import { formatDistanceToNow } from "date-fns";
+import { countActiveEmployees, countActiveParts, getLowStockParts, getRecentTransactions } from "@/lib/db";
 
 const actionCards = [
   { href: "/checkout", title: "Checkout", desc: "Scan an employee badge, scan parts, print the receipt." },
@@ -8,37 +8,18 @@ const actionCards = [
   { href: "/returns", title: "Returns", desc: "Put an unused part back on the shelf." },
 ];
 
-export default async function DashboardPage() {
-  const supabase = await createClient();
-
-  const [{ data: lowStock }, { data: recent }, { count: partCount }, { count: employeeCount }] =
-    await Promise.all([
-      supabase
-        .from("parts")
-        .select("id, part_number, description, quantity_on_hand, reorder_point")
-        .eq("active", true)
-        .not("reorder_point", "is", null)
-        .order("quantity_on_hand", { ascending: true })
-        .limit(20),
-      supabase
-        .from("transactions")
-        .select(
-          "id, type, quantity, created_at, notes, part:parts(part_number, description), employee:employees(first_name, last_name)"
-        )
-        .order("created_at", { ascending: false })
-        .limit(15),
-      supabase.from("parts").select("id", { count: "exact", head: true }).eq("active", true),
-      supabase.from("employees").select("id", { count: "exact", head: true }).eq("active", true),
-    ]);
-
-  const lowStockRows = (lowStock ?? []).filter((p) => p.quantity_on_hand <= (p.reorder_point ?? 0));
+export default function DashboardPage() {
+  const lowStock = getLowStockParts().slice(0, 20);
+  const recent = getRecentTransactions(15);
+  const partCount = countActiveParts();
+  const employeeCount = countActiveEmployees();
 
   return (
     <div className="space-y-8">
       <div>
         <h1 className="text-xl font-semibold text-slate-900 dark:text-slate-100">Dashboard</h1>
         <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-          {partCount ?? 0} active parts · {employeeCount ?? 0} active employees
+          {partCount} active parts · {employeeCount} active employees
         </p>
       </div>
 
@@ -63,13 +44,13 @@ export default async function DashboardPage() {
               All parts
             </Link>
           </div>
-          {lowStockRows.length === 0 ? (
+          {lowStock.length === 0 ? (
             <p className="text-sm text-slate-500 dark:text-slate-400 px-4 py-6">
               Nothing at or below its reorder point.
             </p>
           ) : (
             <ul className="divide-y divide-slate-100 dark:divide-slate-800">
-              {lowStockRows.map((p) => (
+              {lowStock.map((p) => (
                 <li key={p.id} className="px-4 py-2.5 flex items-center justify-between text-sm">
                   <Link href={`/parts/${p.id}`} className="min-w-0">
                     <p className="text-slate-900 dark:text-slate-100 truncate">{p.description}</p>
@@ -88,7 +69,7 @@ export default async function DashboardPage() {
           <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800">
             <h2 className="font-medium text-slate-900 dark:text-slate-100">Recent activity</h2>
           </div>
-          {!recent || recent.length === 0 ? (
+          {recent.length === 0 ? (
             <p className="text-sm text-slate-500 dark:text-slate-400 px-4 py-6">Nothing yet.</p>
           ) : (
             <ul className="divide-y divide-slate-100 dark:divide-slate-800">

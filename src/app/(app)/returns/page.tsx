@@ -1,8 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { createClient } from "@/lib/supabase/client";
-import { returnItem } from "@/app/actions/transactions";
+import { useState } from "react";
+import { getOutstandingForEmployee, lookupEmployeeByBadge, returnItem } from "@/app/actions/transactions";
 import ScannerInput from "@/components/ScannerInput";
 
 type OutstandingItem = {
@@ -10,13 +9,12 @@ type OutstandingItem = {
   quantity: number;
   returned_quantity: number;
   part: { part_number: string; description: string } | null;
-  invoice: { invoice_number: number; work_order_number: string | null; created_at: string } | null;
+  invoice: { invoice_number: number; work_order_number: string | null } | null;
 };
 
 type Employee = { id: string; first_name: string; last_name: string; badge_code: string };
 
 export default function ReturnsPage() {
-  const supabase = useMemo(() => createClient(), []);
   const [employee, setEmployee] = useState<Employee | null>(null);
   const [items, setItems] = useState<OutstandingItem[]>([]);
   const [quantities, setQuantities] = useState<Record<string, number>>({});
@@ -24,41 +22,26 @@ export default function ReturnsPage() {
   const [busyId, setBusyId] = useState<string | null>(null);
 
   async function loadOutstanding(employeeId: string) {
-    const { data, error } = await supabase
-      .from("invoice_items")
-      .select(
-        "id, quantity, returned_quantity, part:parts(part_number, description), invoice:invoices!inner(invoice_number, work_order_number, created_at, voided, employee_id)"
-      )
-      .eq("invoice.employee_id", employeeId)
-      .eq("invoice.voided", false)
-      .order("id");
-
-    if (error) {
-      setMessage({ text: error.message, tone: "error" });
+    const result = await getOutstandingForEmployee(employeeId);
+    if (result.error || !result.items) {
+      setMessage({ text: result.error ?? "Could not load receipts.", tone: "error" });
       return;
     }
-
-    const outstanding = (data ?? []).filter((i) => i.quantity - i.returned_quantity > 0) as unknown as OutstandingItem[];
-    setItems(outstanding);
-    setQuantities(Object.fromEntries(outstanding.map((i) => [i.id, i.quantity - i.returned_quantity])));
+    setItems(result.items);
+    setQuantities(Object.fromEntries(result.items.map((i) => [i.id, i.quantity - i.returned_quantity])));
   }
 
   async function handleScan(code: string) {
     setMessage(null);
-    const { data, error } = await supabase
-      .from("employees")
-      .select("id, first_name, last_name, badge_code")
-      .eq("badge_code", code)
-      .maybeSingle();
-
-    if (error || !data) {
+    const result = await lookupEmployeeByBadge(code);
+    if (result.error || !result.employee) {
       setEmployee(null);
       setItems([]);
-      setMessage({ text: `No employee found for badge "${code}".`, tone: "error" });
+      setMessage({ text: result.error ?? "Employee not found.", tone: "error" });
       return;
     }
-    setEmployee(data);
-    await loadOutstanding(data.id);
+    setEmployee(result.employee);
+    await loadOutstanding(result.employee.id);
   }
 
   async function handleReturn(item: OutstandingItem) {

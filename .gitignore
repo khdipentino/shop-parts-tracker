@@ -8,6 +8,9 @@
 # production
 /build
 
+# the local database — this IS your shop's live data, never commit it
+/data
+
 # misc
 .DS_Store
 *.pem

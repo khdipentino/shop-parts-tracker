@@ -2,10 +2,13 @@
 
 A NAPA/AutoZone-style parts counter for one shop: receive parts in, scan an
 employee badge and scan parts out (printing a receipt to attach to their
-work order), and scan parts back in if they weren't needed. Built with
-Next.js (App Router) + Supabase (Postgres, Auth, Realtime), deployable for
-free on Vercel + Supabase — same stack as the Unit Utilization Tracker, if
-you're familiar with that one.
+work order), and scan parts back in if they weren't needed.
+
+**This version runs entirely on one computer with no internet connection,
+ever, once it's installed.** There's no cloud account, no database service,
+no API key — everything (staff logins, parts, employees, every receipt)
+lives in a single file on that computer's disk. Back that one file up and
+you have the whole shop's data.
 
 ## What's already built
 
@@ -29,68 +32,88 @@ you're familiar with that one.
   voiding a receipt restocks everything on it that wasn't already
   individually returned. Nothing is ever deleted — voided receipts stay in
   history.
-- **Auth + approval**: sign up → sits "pending" until an admin approves
-  them as staff or admin. Every stock movement and receipt is stamped
-  server-side with who actually did it — can't be spoofed from the browser.
+- **PIN-based staff login**: pick your name, enter your PIN. The first
+  time the app runs on a computer it walks you through creating the first
+  admin account; that admin adds everyone else from **Admin → Manage
+  staff**. Every stock movement and receipt is stamped server-side with
+  who actually did it.
 
-## 1. Create your two free accounts
+## How this stays offline
 
-I can't create accounts on your behalf — here's exactly what to click.
+- **Database**: a single SQLite file at `data/shop-parts-tracker.db`,
+  read and written directly by the app using Node's own built-in SQLite
+  support — nothing to install, nothing to configure, no server process to
+  run alongside it.
+- **Auth**: PIN logins checked against that same local file. Sessions are
+  a signed cookie (the signing key is generated automatically on first run
+  and saved in `.env.local`) — no external auth service.
+- **No web fonts, no CDN scripts, no analytics** — anything the page needs
+  is bundled in at build time.
 
-### Supabase (database + auth)
+The **only** point that needs internet at all is getting the code and its
+dependencies onto the computer in the first place (steps 1–2 below). Once
+`npm run build` has completed successfully, you can disconnect that
+computer from the network permanently and the app keeps working.
 
-1. Go to [supabase.com](https://supabase.com) → **Start your project** → sign
-   up (GitHub sign-in is easiest).
-2. **New project** → name it (e.g. `shop-parts-tracker`), set a database
-   password (save it somewhere), pick the region closest to you, free plan.
-3. Once it's provisioned, open **Project Settings → API**. You'll need two
-   values in a minute: **Project URL** and the **anon public** key.
-4. Open the **SQL Editor** (left sidebar) → **New query**, paste in the
-   entire contents of [`supabase/migrations/0001_init.sql`](supabase/migrations/0001_init.sql),
-   and run it. This creates every table, security policy, and trigger.
-5. **Auth → Providers → Email**: for an internal tool, turn **Confirm
-   email** off so people can sign up and start their access request in one
-   step (otherwise they'll need to click an email link before their
-   profile can be created). You can turn it back on later if you want that
-   extra step.
+## 1. Put Node.js on the computer
 
-### Vercel (hosting)
+You need Node.js **22.5 or newer** (this app uses Node's built-in SQLite
+support, which landed in that version). Download the installer for that
+computer's OS from [nodejs.org](https://nodejs.org) while you have network
+access, and run it. `node --version` in a terminal should then print
+`v22.5.0` or higher.
 
-1. Go to [vercel.com](https://vercel.com) → sign up (GitHub sign-in is
-   easiest — use the same GitHub account this repo is under).
-2. In Vercel: **Add New → Project** → import this GitHub repo.
-3. Under **Environment Variables**, add:
-   - `NEXT_PUBLIC_SUPABASE_URL` → the Project URL from Supabase step 3
-   - `NEXT_PUBLIC_SUPABASE_ANON_KEY` → the anon public key from Supabase step 3
-4. Deploy. You'll get a live `https://your-project.vercel.app` link the
-   whole shop can open — including from a phone or tablet at the counter.
+## 2. Get this code onto the computer and install dependencies
 
-## 2. Make yourself the first admin
+With network access (temporary is fine):
 
-Every new sign-up starts as "pending," and only an existing admin can
-approve someone — so the very first admin has to be promoted by hand, once:
+```bash
+git clone https://github.com/khdipentino/shop-parts-tracker.git
+cd shop-parts-tracker
+npm install
+npm run build
+```
 
-1. Sign up in the live app with your own name/email like anyone else.
-2. In Supabase → **SQL Editor**, run (swap in your email):
-   ```sql
-   update profiles set app_role = 'admin'
-   where id = (select id from auth.users where email = 'you@example.com');
-   ```
-3. Refresh the app — you can now approve everyone else from **Admin →
-   Pending requests**.
+`npm install` is the one step that actually needs the internet — it
+downloads the packages this app is built from. `npm run build` compiles
+everything into the `.next` folder; once that finishes, you're done
+needing network. (If you'd rather not risk connecting the real shop
+computer to the internet at all: run these same three commands on any
+other computer, matching or newer Node version, then copy the *entire*
+folder — including the `node_modules` and `.next` folders it creates —
+over by USB drive.)
 
-## 3. Set up your catalog
+## 3. Run it
 
-1. **Employees** → add each employee with the code on their badge. If
+```bash
+npm run start
+```
+
+Then open **http://localhost:3000** in a browser on that computer. Leave
+the terminal window open — that's the app running; closing it stops the
+app. (If you want it to start automatically on boot or keep running in the
+background, that's an OS-level thing — ask me and I can walk through it
+for whatever OS that computer runs.)
+
+The very first time it runs, you'll land on a **setup screen** to create
+the first admin account (just a name and a PIN — no email, no internet
+lookup). After that, everyone signs in from the login screen by picking
+their name and entering their PIN.
+
+## 4. Set up your catalog
+
+1. **Admin → Manage staff** → add everyone else who works the counter,
+   with their own PIN.
+2. **Employees** → add each employee with the code on their badge. If
    badges aren't printed yet, generate any code you like (e.g. `E-0001`)
    and print one from that employee's page — **Print badge**.
-2. **Parts** → add each part (part number, description, bin, reorder
+3. **Parts** → add each part (part number, description, bin, reorder
    point, starting quantity). If a part doesn't already have a
    manufacturer barcode you're using, leave the barcode field blank and
    it'll default to the part number — or print a generated one from the
    part's page.
 
-## 4. Daily workflow
+## 5. Daily workflow
 
 - **Someone needs a part**: Checkout → scan their badge → scan the part(s)
   → Complete & print. Hand them the receipt for their work order.
@@ -101,11 +124,19 @@ approve someone — so the very first admin has to be promoted by hand, once:
 - **Scanned the wrong thing**: open that receipt from Receipt history →
   Void this receipt (restocks it, keeps the record).
 
+## Backing up your data
+
+Everything is the one file: `data/shop-parts-tracker.db`. There's no cloud
+copy, so back it up the way you'd back up any important local file — copy
+it to a USB drive or another computer on whatever schedule makes sense for
+how much you'd hate to lose a day's receipts. The app doesn't need to be
+stopped first, but avoid copying it mid-checkout; a quiet moment (end of
+day) is safest.
+
 ## Local development
 
 ```bash
 npm install
-cp .env.local.example .env.local   # fill in your Supabase URL + anon key
 npm run dev
 ```
 
@@ -119,13 +150,7 @@ npm run dev
   with any regular printer). If you later get a dedicated thermal label
   printer, the barcode rendering (`src/components/Barcode.tsx`) is the
   only piece that would need a driver-specific alternative.
-- `src/lib/database.types.ts` is hand-written to match the SQL schema.
-  Once your Supabase project exists you can replace it with the real
-  generated types any time (command is in that file's header comment) —
-  no other code changes needed.
-
-## Deploying changes
-
-Once connected to Vercel, pushing to `main` (including editing a file
-directly on github.com) automatically deploys. No local terminal needed
-for simple content/text changes.
+- If a second computer at the counter ever needs to see the same live
+  stock, this single-file setup isn't the right fit anymore — that needs a
+  small local server the other machine connects to over the shop's own
+  network (still no internet required). Ask if that becomes a need.

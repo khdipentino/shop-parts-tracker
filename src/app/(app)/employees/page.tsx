@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/server";
+import { listEmployees } from "@/lib/db";
 
 export default async function EmployeesPage({
   searchParams,
@@ -7,19 +7,7 @@ export default async function EmployeesPage({
   searchParams: Promise<{ q?: string }>;
 }) {
   const { q } = await searchParams;
-  const supabase = await createClient();
-
-  let query = supabase
-    .from("employees")
-    .select("id, first_name, last_name, badge_code, shop_section, active")
-    .order("last_name");
-
-  if (q) {
-    const term = q.replace(/[%,]/g, "");
-    query = query.or(`first_name.ilike.%${term}%,last_name.ilike.%${term}%,badge_code.ilike.%${term}%`);
-  }
-
-  const { data: employees } = await query;
+  const employees = listEmployees(q);
 
   return (
     <div className="space-y-6">
@@ -55,7 +43,7 @@ export default async function EmployeesPage({
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-            {(employees ?? []).map((e) => (
+            {employees.map((e) => (
               <tr key={e.id} className={!e.active ? "opacity-50" : ""}>
                 <td className="px-4 py-2">
                   <Link href={`/employees/${e.id}`} className="text-slate-900 dark:text-slate-100 font-medium hover:underline">
@@ -66,7 +54,7 @@ export default async function EmployeesPage({
                 <td className="px-4 py-2 text-slate-700 dark:text-slate-300">{e.shop_section ?? "—"}</td>
               </tr>
             ))}
-            {(!employees || employees.length === 0) && (
+            {employees.length === 0 && (
               <tr>
                 <td colSpan={3} className="px-4 py-6 text-center text-slate-500 dark:text-slate-400">
                   No employees found.

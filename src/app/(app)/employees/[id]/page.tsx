@@ -1,27 +1,15 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
 import { format } from "date-fns";
+import { getEmployeeById, getTransactionsForEmployee } from "@/lib/db";
 import { EmployeeEditForm, EmployeeActiveToggle } from "./EmployeeDetailClient";
 
 export default async function EmployeeDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const supabase = await createClient();
-
-  const { data: employee } = await supabase
-    .from("employees")
-    .select("id, first_name, last_name, badge_code, shop_section, active")
-    .eq("id", id)
-    .maybeSingle();
-
+  const employee = getEmployeeById(id);
   if (!employee) notFound();
 
-  const { data: history } = await supabase
-    .from("transactions")
-    .select("id, type, quantity, created_at, work_order_number, part:parts(part_number, description)")
-    .eq("employee_id", id)
-    .order("created_at", { ascending: false })
-    .limit(100);
+  const history = getTransactionsForEmployee(id, 100);
 
   return (
     <div className="space-y-6">
@@ -68,7 +56,7 @@ export default async function EmployeeDetailPage({ params }: { params: Promise<{
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-              {(history ?? []).map((h) => (
+              {history.map((h) => (
                 <tr key={h.id}>
                   <td className="px-4 py-2 text-slate-500 dark:text-slate-400 whitespace-nowrap">
                     {format(new Date(h.created_at), "MMM d, yyyy h:mm a")}
@@ -83,7 +71,7 @@ export default async function EmployeeDetailPage({ params }: { params: Promise<{
                   <td className="px-4 py-2 text-slate-500 dark:text-slate-400">{h.work_order_number ?? ""}</td>
                 </tr>
               ))}
-              {(!history || history.length === 0) && (
+              {history.length === 0 && (
                 <tr>
                   <td colSpan={5} className="px-4 py-6 text-center text-slate-500 dark:text-slate-400">
                     No activity yet.

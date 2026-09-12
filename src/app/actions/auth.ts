@@ -1,53 +1,44 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { countStaff, createStaff, getStaffById } from "@/lib/db";
+import { hashPin, verifyPin } from "@/lib/pin";
+import { startSession, endSession } from "@/lib/auth";
 
 export async function signIn(_prevState: unknown, formData: FormData) {
-  const email = String(formData.get("email") || "").trim();
-  const password = String(formData.get("password") || "");
+  const staffId = String(formData.get("staff_id") || "");
+  const pin = String(formData.get("pin") || "");
 
-  const supabase = await createClient();
-  const { error } = await supabase.auth.signInWithPassword({ email, password });
-  if (error) return { error: error.message };
+  if (!staffId || !pin) return { error: "Choose your name and enter your PIN." };
 
-  redirect("/");
-}
-
-export async function requestAccess(_prevState: unknown, formData: FormData) {
-  const email = String(formData.get("email") || "").trim();
-  const password = String(formData.get("password") || "");
-  const fullName = String(formData.get("full_name") || "").trim();
-
-  if (!fullName) {
-    return { error: "Name is required." };
-  }
-  if (password.length < 8) {
-    return { error: "Password must be at least 8 characters." };
+  const staff = getStaffById(staffId);
+  if (!staff || !staff.active || !verifyPin(pin, staff.pin_hash)) {
+    return { error: "Incorrect PIN." };
   }
 
-  const supabase = await createClient();
-  const { data, error } = await supabase.auth.signUp({ email, password });
-  if (error) return { error: error.message };
-  if (!data.user) {
-    return {
-      error:
-        "Check your email to confirm your account, then log in to finish your access request.",
-    };
-  }
-
-  const { error: profileError } = await supabase.from("profiles").insert({
-    id: data.user.id,
-    full_name: fullName,
-    app_role: "pending",
-  });
-  if (profileError) return { error: profileError.message };
-
-  redirect("/pending");
+  await startSession(staff.id);
+  redirect("/dashboard");
 }
 
 export async function signOut() {
-  const supabase = await createClient();
-  await supabase.auth.signOut();
+  await endSession();
   redirect("/login");
+}
+
+export async function createFirstAdmin(_prevState: unknown, formData: FormData) {
+  if (countStaff() > 0) {
+    return { error: "Setup has already been completed — go to the login page instead." };
+  }
+
+  const fullName = String(formData.get("full_name") || "").trim();
+  const pin = String(formData.get("pin") || "");
+  const confirmPin = String(formData.get("confirm_pin") || "");
+
+  if (!fullName) return { error: "Name is required." };
+  if (pin.length < 4) return { error: "PIN must be at least 4 digits." };
+  if (pin !== confirmPin) return { error: "PINs don't match." };
+
+  const staff = createStaff(fullName, hashPin(pin), "admin");
+  await startSession(staff.id);
+  redirect("/dashboard");
 }

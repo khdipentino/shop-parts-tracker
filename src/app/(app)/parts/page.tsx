@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/server";
+import { listParts } from "@/lib/db";
 
 export default async function PartsPage({
   searchParams,
@@ -7,19 +7,7 @@ export default async function PartsPage({
   searchParams: Promise<{ q?: string }>;
 }) {
   const { q } = await searchParams;
-  const supabase = await createClient();
-
-  let query = supabase
-    .from("parts")
-    .select("id, part_number, description, bin_location, quantity_on_hand, reorder_point, active")
-    .order("part_number");
-
-  if (q) {
-    const term = q.replace(/[%,]/g, "");
-    query = query.or(`part_number.ilike.%${term}%,description.ilike.%${term}%,barcode_code.ilike.%${term}%`);
-  }
-
-  const { data: parts } = await query;
+  const parts = listParts(q);
 
   return (
     <div className="space-y-6">
@@ -56,7 +44,7 @@ export default async function PartsPage({
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-            {(parts ?? []).map((p) => {
+            {parts.map((p) => {
               const low = p.reorder_point != null && p.quantity_on_hand <= p.reorder_point;
               return (
                 <tr key={p.id} className={!p.active ? "opacity-50" : ""}>
@@ -81,7 +69,7 @@ export default async function PartsPage({
                 </tr>
               );
             })}
-            {(!parts || parts.length === 0) && (
+            {parts.length === 0 && (
               <tr>
                 <td colSpan={4} className="px-4 py-6 text-center text-slate-500 dark:text-slate-400">
                   No parts found.

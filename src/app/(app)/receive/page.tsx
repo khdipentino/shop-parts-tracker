@@ -1,16 +1,14 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/client";
-import { receivePart } from "@/app/actions/transactions";
+import { lookupPartByBarcode, receivePart } from "@/app/actions/transactions";
 import ScannerInput from "@/components/ScannerInput";
 
 type Part = { id: string; part_number: string; description: string; barcode_code: string; quantity_on_hand: number };
 type LogLine = { part: Part; quantity: number; at: string };
 
 export default function ReceivePage() {
-  const supabase = useMemo(() => createClient(), []);
   const [part, setPart] = useState<Part | null>(null);
   const [notFoundCode, setNotFoundCode] = useState<string | null>(null);
   const [log, setLog] = useState<LogLine[]>([]);
@@ -19,18 +17,13 @@ export default function ReceivePage() {
 
   async function handleScan(code: string) {
     setNotFoundCode(null);
-    const { data, error: lookupError } = await supabase
-      .from("parts")
-      .select("id, part_number, description, barcode_code, quantity_on_hand")
-      .eq("barcode_code", code)
-      .maybeSingle();
-
-    if (lookupError || !data) {
+    const result = await lookupPartByBarcode(code);
+    if (result.error || !result.part) {
       setPart(null);
       setNotFoundCode(code);
       return;
     }
-    setPart(data);
+    setPart(result.part);
   }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
