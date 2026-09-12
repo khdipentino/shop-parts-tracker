@@ -152,18 +152,18 @@ export default function ReturnsPage() {
   return (
     <div className="max-w-2xl space-y-6">
       <div>
-        <h1 className="text-xl font-semibold text-slate-900 dark:text-slate-100">Returns</h1>
-        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+        <h1 className="text-xl font-semibold text-ink">Returns</h1>
+        <p className="text-sm text-slate-500 mt-1">
           Scan the receipt to return from it directly, or scan the employee&rsquo;s badge to see everything
           outstanding across all their receipts.
         </p>
       </div>
 
-      <div className="flex gap-1 rounded-md bg-slate-100 dark:bg-slate-800 p-1 text-sm max-w-xs">
+      <div className="flex gap-1 rounded-md bg-slate-100 p-1 text-sm max-w-xs">
         <button
           onClick={() => switchMode("receipt")}
           className={`flex-1 rounded py-1.5 font-medium transition-colors ${
-            mode === "receipt" ? "bg-white dark:bg-slate-700 text-brand dark:text-white shadow-sm" : "text-slate-500 dark:text-slate-400"
+            mode === "receipt" ? "bg-white text-black shadow-sm" : "text-slate-500"
           }`}
         >
           Scan receipt
@@ -171,7 +171,7 @@ export default function ReturnsPage() {
         <button
           onClick={() => switchMode("employee")}
           className={`flex-1 rounded py-1.5 font-medium transition-colors ${
-            mode === "employee" ? "bg-white dark:bg-slate-700 text-brand dark:text-white shadow-sm" : "text-slate-500 dark:text-slate-400"
+            mode === "employee" ? "bg-white text-black shadow-sm" : "text-slate-500"
           }`}
         >
           Scan employee badge
@@ -182,8 +182,8 @@ export default function ReturnsPage() {
         <p
           className={`text-sm rounded-md px-3 py-2 border ${
             message.tone === "error"
-              ? "text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/40 border-red-200 dark:border-red-900"
-              : "text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-900"
+              ? "text-red-600 bg-red-50 border-red-200"
+              : "text-emerald-700 bg-emerald-50 border-emerald-200"
           }`}
         >
           {message.text}
@@ -191,19 +191,19 @@ export default function ReturnsPage() {
       )}
 
       {scannedSomething ? (
-        <div className="flex items-center justify-between rounded-md bg-slate-50 dark:bg-slate-800 px-3 py-2">
-          <span className="text-sm text-slate-900 dark:text-slate-100">
+        <div className="flex items-center justify-between rounded-md bg-slate-50 px-3 py-2">
+          <span className="text-sm text-ink">
             {mode === "receipt"
               ? `Receipt #${invoiceNumber}`
               : `${employee!.first_name} ${employee!.last_name} · ${employee!.badge_code}`}
           </span>
           <div className="flex items-center gap-3">
             {mode === "receipt" && invoiceId && (
-              <Link href={`/invoices/${invoiceId}/print`} className="text-xs text-brand dark:text-white underline">
+              <Link href={`/invoices/${invoiceId}/print`} className="text-xs text-ink underline">
                 Reprint receipt
               </Link>
             )}
-            <button onClick={reset} className="text-xs text-slate-500 dark:text-slate-400 underline">
+            <button onClick={reset} className="text-xs text-slate-500 underline">
               {mode === "receipt" ? "Scan a different receipt" : "Change employee"}
             </button>
           </div>
@@ -215,13 +215,13 @@ export default function ReturnsPage() {
       )}
 
       {scannedSomething && items.length === 0 && (
-        <p className="text-sm text-slate-500 dark:text-slate-400">Nothing outstanding here.</p>
+        <p className="text-sm text-slate-500">Nothing outstanding here.</p>
       )}
 
       {items.length > 0 && (
-        <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden">
+        <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">
           <table className="w-full text-sm">
-            <thead className="bg-slate-50 dark:bg-slate-800/60 text-slate-500 dark:text-slate-400 text-left">
+            <thead className="bg-slate-50 text-slate-500 text-left">
               <tr>
                 <th className="px-4 py-2 font-medium">Part</th>
                 {mode === "employee" && <th className="px-4 py-2 font-medium">Receipt</th>}
@@ -230,22 +230,22 @@ export default function ReturnsPage() {
                 <th className="px-4 py-2 w-24" />
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+            <tbody className="divide-y divide-slate-100">
               {items.map((item) => {
                 const outstanding = item.quantity - item.returned_quantity;
                 return (
                   <tr key={item.id}>
                     <td className="px-4 py-2">
-                      <p className="text-slate-900 dark:text-slate-100">{item.part?.description}</p>
-                      <p className="text-slate-500 dark:text-slate-400 text-xs">{item.part?.part_number}</p>
+                      <p className="text-ink">{item.part?.description}</p>
+                      <p className="text-slate-500 text-xs">{item.part?.part_number}</p>
                     </td>
                     {mode === "employee" && (
-                      <td className="px-4 py-2 text-slate-500 dark:text-slate-400">
+                      <td className="px-4 py-2 text-slate-500">
                         #{item.invoice?.invoice_number}
                         {item.invoice?.work_order_number ? ` · ${item.invoice.work_order_number}` : ""}
                       </td>
                     )}
-                    <td className="px-4 py-2 text-slate-500 dark:text-slate-400">{outstanding}</td>
+                    <td className="px-4 py-2 text-slate-500">{outstanding}</td>
                     <td className="px-4 py-2">
                       <input
                         type="number"
@@ -253,14 +253,14 @@ export default function ReturnsPage() {
                         max={outstanding}
                         value={quantities[item.id] ?? outstanding}
                         onChange={(e) => setQuantities((prev) => ({ ...prev, [item.id]: Number(e.target.value) }))}
-                        className="w-16 rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 px-2 py-1"
+                        className="w-16 rounded-md border border-slate-300 bg-white text-ink px-2 py-1"
                       />
                     </td>
                     <td className="px-4 py-2 text-right">
                       <button
                         onClick={() => handleReturn(item)}
                         disabled={busyId === item.id}
-                        className="text-sm bg-brand text-white rounded-md px-3 py-1.5 hover:bg-brand-dark disabled:opacity-50 dark:bg-brand dark:hover:bg-brand-dark"
+                        className="text-sm bg-brand text-white rounded-md px-3 py-1.5 hover:bg-brand-dark disabled:opacity-50"
                       >
                         {busyId === item.id ? "…" : "Return"}
                       </button>

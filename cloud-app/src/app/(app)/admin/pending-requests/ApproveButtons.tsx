@@ -21,14 +21,14 @@ export default function ApproveButtons({ userId }: { userId: string }) {
       <button
         disabled={busy !== null}
         onClick={() => approve("staff")}
-        className="text-sm bg-brand text-white rounded-md px-3 py-1.5 hover:bg-brand-dark disabled:opacity-50 dark:bg-brand dark:text-white dark:hover:bg-brand-dark"
+        className="text-sm bg-brand text-white rounded-md px-3 py-1.5 hover:bg-brand-dark disabled:opacity-50"
       >
         {busy === "staff" ? "…" : "Approve as staff"}
       </button>
       <button
         disabled={busy !== null}
         onClick={() => approve("admin")}
-        className="text-sm border border-slate-300 dark:border-slate-700 rounded-md px-3 py-1.5 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-50"
+        className="text-sm border border-slate-300 rounded-md px-3 py-1.5 text-slate-700 hover:bg-slate-50 disabled:opacity-50"
       >
         {busy === "admin" ? "…" : "Approve as admin"}
       </button>

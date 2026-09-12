@@ -31,34 +31,34 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
 
   return (
     <div className="space-y-6">
-      <Link href="/invoices" className="text-sm text-slate-500 dark:text-slate-400 underline">
+      <Link href="/invoices" className="text-sm text-slate-500 underline">
         ← Receipt history
       </Link>
 
       <div className="flex items-start justify-between flex-wrap gap-4">
         <div>
-          <h1 className="text-xl font-semibold text-slate-900 dark:text-slate-100">
+          <h1 className="text-xl font-semibold text-ink">
             Receipt #{invoice.invoice_number}
             {invoice.voided && <span className="ml-2 text-sm text-red-500">Voided</span>}
           </h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+          <p className="text-sm text-slate-500 mt-1">
             {invoice.employee ? `${invoice.employee.first_name} ${invoice.employee.last_name}` : "Unknown employee"}
             {" · "}
             {invoice.work_order_number} · Asset {invoice.asset_id} ·{" "}
             {format(new Date(invoice.created_at), "MMM d, yyyy h:mm a")}
           </p>
           {invoice.voided && invoice.void_reason && (
-            <p className="text-sm text-red-600 dark:text-red-400 mt-1">Reason: {invoice.void_reason}</p>
+            <p className="text-sm text-red-600 mt-1">Reason: {invoice.void_reason}</p>
           )}
         </div>
-        <Link href={`/invoices/${invoice.id}/print`} className="text-sm text-slate-500 dark:text-slate-400 underline">
+        <Link href={`/invoices/${invoice.id}/print`} className="text-sm text-slate-500 underline">
           Print / reprint
         </Link>
       </div>
 
-      <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-x-auto">
+      <div className="rounded-xl border border-slate-200 bg-white overflow-x-auto">
         <table className="w-full text-sm">
-          <thead className="bg-slate-50 dark:bg-slate-800/60 text-slate-500 dark:text-slate-400 text-left">
+          <thead className="bg-slate-50 text-slate-500 text-left">
             <tr>
               <th className="px-4 py-2 font-medium">Part</th>
               <th className="px-4 py-2 font-medium">Issued</th>
@@ -67,30 +67,30 @@ export default async function InvoiceDetailPage({ params }: { params: Promise<{ 
               <th className="px-4 py-2 font-medium">Amount</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+          <tbody className="divide-y divide-slate-100">
             {(items ?? []).map((i) => (
               <tr key={i.id}>
                 <td className="px-4 py-2">
-                  <p className="text-slate-900 dark:text-slate-100">{i.part?.description}</p>
-                  <p className="text-slate-500 dark:text-slate-400 text-xs">{i.part?.part_number}</p>
+                  <p className="text-ink">{i.part?.description}</p>
+                  <p className="text-slate-500 text-xs">{i.part?.part_number}</p>
                 </td>
-                <td className="px-4 py-2 text-slate-700 dark:text-slate-300">{i.quantity}</td>
-                <td className="px-4 py-2 text-slate-500 dark:text-slate-400">{i.returned_quantity}</td>
-                <td className="px-4 py-2 text-slate-500 dark:text-slate-400">
+                <td className="px-4 py-2 text-slate-700">{i.quantity}</td>
+                <td className="px-4 py-2 text-slate-500">{i.returned_quantity}</td>
+                <td className="px-4 py-2 text-slate-500">
                   {i.unit_cost_snapshot != null ? currency.format(i.unit_cost_snapshot) : "—"}
                 </td>
-                <td className="px-4 py-2 text-slate-700 dark:text-slate-300">
+                <td className="px-4 py-2 text-slate-700">
                   {currency.format((i.quantity - i.returned_quantity) * (i.unit_cost_snapshot ?? 0))}
                 </td>
               </tr>
             ))}
           </tbody>
           <tfoot>
-            <tr className="border-t-2 border-slate-300 dark:border-slate-700 font-medium">
+            <tr className="border-t-2 border-slate-300 font-medium">
               <td className="px-4 py-2" colSpan={4}>
                 Total due
               </td>
-              <td className="px-4 py-2 text-slate-900 dark:text-slate-100">{currency.format(total)}</td>
+              <td className="px-4 py-2 text-ink">{currency.format(total)}</td>
             </tr>
           </tfoot>
         </table>

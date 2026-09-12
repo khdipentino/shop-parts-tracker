@@ -75,11 +75,11 @@ export default function InvoicePrintPage() {
       <div className="no-print flex items-center gap-3">
         <button
           onClick={() => window.print()}
-          className="bg-brand text-white rounded-md px-4 py-2 text-sm font-medium hover:bg-brand-dark dark:bg-brand dark:hover:bg-brand-dark"
+          className="bg-brand text-white rounded-md px-4 py-2 text-sm font-medium hover:bg-brand-dark"
         >
           Print
         </button>
-        <Link href="/checkout" className="text-sm text-slate-500 dark:text-slate-400 underline">
+        <Link href="/checkout" className="text-sm text-slate-500 underline">
           Start next checkout
         </Link>
       </div>

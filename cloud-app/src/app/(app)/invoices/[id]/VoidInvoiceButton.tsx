@@ -13,15 +13,15 @@ export default function VoidInvoiceButton({ invoiceId }: { invoiceId: string }) 
 
   if (!open) {
     return (
-      <button onClick={() => setOpen(true)} className="text-sm text-red-600 dark:text-red-400 underline">
+      <button onClick={() => setOpen(true)} className="text-sm text-red-600 underline">
         Void this receipt
       </button>
     );
   }
 
   return (
-    <div className="rounded-xl border border-red-200 dark:border-red-900 bg-red-50 dark:bg-red-950/40 p-4 space-y-3 max-w-md">
-      <p className="text-sm text-red-700 dark:text-red-400">
+    <div className="rounded-xl border border-red-200 bg-red-50 p-4 space-y-3 max-w-md">
+      <p className="text-sm text-red-700">
         This restocks everything on the receipt that hasn&rsquo;t already been individually returned, and marks it
         voided. It stays in history — nothing is deleted.
       </p>
@@ -29,9 +29,9 @@ export default function VoidInvoiceButton({ invoiceId }: { invoiceId: string }) 
         value={reason}
         onChange={(e) => setReason(e.target.value)}
         placeholder="Reason (e.g. wrong employee scanned)"
-        className="w-full rounded-md border border-red-300 dark:border-red-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 px-3 py-2 text-sm"
+        className="w-full rounded-md border border-red-300 bg-white text-ink px-3 py-2 text-sm"
       />
-      {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
+      {error && <p className="text-sm text-red-600">{error}</p>}
       <div className="flex gap-3">
         <button
           disabled={busy}
@@ -50,7 +50,7 @@ export default function VoidInvoiceButton({ invoiceId }: { invoiceId: string }) 
         >
           {busy ? "Voiding…" : "Confirm void"}
         </button>
-        <button onClick={() => setOpen(false)} className="text-sm text-slate-500 dark:text-slate-400 underline">
+        <button onClick={() => setOpen(false)} className="text-sm text-slate-500 underline">
           Cancel
         </button>
       </div>

@@ -1,28 +1,20 @@
 @import "tailwindcss";
 
-/* Broncos throwback: a brighter blue + orange than the modern navy/orange,
-   used consistently across light and dark mode as the app's brand colors
-   (buttons, links, active nav, header accent) — separate from the
-   semantic status colors (amber/red/emerald for warnings/errors/success),
-   which stay as-is so "this needs attention" never gets confused with
-   "this is on-brand." */
+/* Brand palette (from the shop): white background, orange buttons, blue
+   text, black header stripe / active nav. This is a single fixed theme —
+   no dark-mode variant — so it always looks the same regardless of the
+   viewer's system setting. Semantic status colors (amber/red/emerald for
+   warnings/errors/success) are untouched on purpose, so "this needs
+   attention" never gets confused with "this is on-brand." */
 @theme {
-  --color-brand: #0056d2;
-  --color-brand-dark: #003f9e;
-  --color-accent: #fb4f14;
-  --color-accent-dark: #d9400f;
+  --color-brand: #fa4616; /* buttons */
+  --color-brand-dark: #d13a10; /* button hover/pressed */
+  --color-ink: #003da5; /* primary text/headings */
 }
 
 :root {
-  --background: #f8fafc;
-  --foreground: #0f172a;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0b1220;
-    --foreground: #e5e9f0;
-  }
+  --background: #ffffff;
+  --foreground: #003da5;
 }
 
 body {

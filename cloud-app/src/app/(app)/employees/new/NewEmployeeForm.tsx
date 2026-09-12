@@ -5,8 +5,8 @@ import { useRouter } from "next/navigation";
 import { createEmployee } from "@/app/actions/employees";
 
 const fieldClass =
-  "w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400 dark:focus:ring-slate-600";
-const labelClass = "block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1";
+  "w-full rounded-md border border-slate-300 bg-white text-ink px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400";
+const labelClass = "block text-sm font-medium text-slate-700 mb-1";
 
 export default function NewEmployeeForm() {
   const router = useRouter();
@@ -43,7 +43,7 @@ export default function NewEmployeeForm() {
       </div>
 
       {state?.error && (
-        <p className="text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900 rounded-md px-3 py-2">
+        <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-2">
           {state.error}
         </p>
       )}
@@ -51,7 +51,7 @@ export default function NewEmployeeForm() {
       <button
         type="submit"
         disabled={pending}
-        className="bg-brand text-white rounded-md px-4 py-2 text-sm font-medium hover:bg-brand-dark disabled:opacity-50 dark:bg-brand dark:text-white dark:hover:bg-brand-dark"
+        className="bg-brand text-white rounded-md px-4 py-2 text-sm font-medium hover:bg-brand-dark disabled:opacity-50"
       >
         {pending ? "Saving…" : "Save employee"}
       </button>

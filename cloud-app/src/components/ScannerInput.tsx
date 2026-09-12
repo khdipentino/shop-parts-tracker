@@ -64,7 +64,7 @@ const ScannerInput = forwardRef<
       onBlur={refocus}
       placeholder={placeholder}
       autoComplete="off"
-      className="w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 px-3 py-3 text-lg font-mono focus:outline-none focus:ring-2 focus:ring-slate-400 dark:focus:ring-slate-600 disabled:opacity-60"
+      className="w-full rounded-md border border-slate-300 bg-white text-ink px-3 py-3 text-lg font-mono focus:outline-none focus:ring-2 focus:ring-slate-400 disabled:opacity-60"
     />
   );
 });

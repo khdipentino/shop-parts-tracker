@@ -28,16 +28,16 @@ export default function PartLabelPage() {
       <div className="no-print flex items-center gap-3">
         <button
           onClick={() => window.print()}
-          className="bg-brand text-white rounded-md px-4 py-2 text-sm font-medium hover:bg-brand-dark dark:bg-brand dark:text-white dark:hover:bg-brand-dark"
+          className="bg-brand text-white rounded-md px-4 py-2 text-sm font-medium hover:bg-brand-dark"
         >
           Print label
         </button>
-        <p className="text-sm text-slate-500 dark:text-slate-400">
+        <p className="text-sm text-slate-500">
           Prints on plain paper — cut to size, or use adhesive label sheets in your printer.
         </p>
       </div>
 
-      <div className="inline-block border border-slate-300 dark:border-slate-700 rounded-md p-4 bg-white text-black">
+      <div className="inline-block border border-slate-300 rounded-md p-4 bg-white text-black">
         <p className="text-sm font-medium">{part.description}</p>
         <p className="text-xs text-slate-600 mb-2">{part.part_number}</p>
         <Barcode value={part.barcode_code} height={50} />

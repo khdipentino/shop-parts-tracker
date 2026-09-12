@@ -28,13 +28,13 @@ export default function EmployeeBadgePage() {
       <div className="no-print flex items-center gap-3">
         <button
           onClick={() => window.print()}
-          className="bg-brand text-white rounded-md px-4 py-2 text-sm font-medium hover:bg-brand-dark dark:bg-brand dark:text-white dark:hover:bg-brand-dark"
+          className="bg-brand text-white rounded-md px-4 py-2 text-sm font-medium hover:bg-brand-dark"
         >
           Print badge
         </button>
       </div>
 
-      <div className="inline-block border border-slate-300 dark:border-slate-700 rounded-md p-4 bg-white text-black w-64">
+      <div className="inline-block border border-slate-300 rounded-md p-4 bg-white text-black w-64">
         <p className="text-base font-medium">
           {employee.first_name} {employee.last_name}
         </p>

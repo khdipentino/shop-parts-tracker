@@ -9,7 +9,7 @@ export default async function NewPartPage({
 
   return (
     <div className="space-y-6">
-      <h1 className="text-xl font-semibold text-slate-900 dark:text-slate-100">New part</h1>
+      <h1 className="text-xl font-semibold text-ink">New part</h1>
       <NewPartForm defaultBarcode={barcode ?? ""} />
     </div>
   );

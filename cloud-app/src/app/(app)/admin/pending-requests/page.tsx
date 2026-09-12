@@ -12,17 +12,17 @@ export default async function PendingRequestsPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-xl font-semibold text-slate-900 dark:text-slate-100">Pending requests</h1>
+      <h1 className="text-xl font-semibold text-ink">Pending requests</h1>
 
       {(!pending || pending.length === 0) ? (
-        <p className="text-sm text-slate-500 dark:text-slate-400">No pending access requests.</p>
+        <p className="text-sm text-slate-500">No pending access requests.</p>
       ) : (
-        <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 divide-y divide-slate-100 dark:divide-slate-800">
+        <div className="rounded-xl border border-slate-200 bg-white divide-y divide-slate-100">
           {pending.map((p) => (
             <div key={p.id} className="px-4 py-3 flex items-center justify-between flex-wrap gap-3">
               <div>
-                <p className="text-slate-900 dark:text-slate-100 font-medium">{p.full_name}</p>
-                <p className="text-xs text-slate-500 dark:text-slate-400">
+                <p className="text-ink font-medium">{p.full_name}</p>
+                <p className="text-xs text-slate-500">
                   Requested {format(new Date(p.requested_at), "MMM d, yyyy h:mm a")}
                 </p>
               </div>

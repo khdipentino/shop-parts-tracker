@@ -34,17 +34,17 @@ export default function BarcodeSignInForm() {
   return (
     <div className="space-y-4">
       <div>
-        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">1. Scan your ID badge</label>
+        <label className="block text-sm font-medium text-slate-700 mb-1">1. Scan your ID badge</label>
         {staffCode ? (
-          <div className="flex items-center justify-between rounded-md bg-slate-50 dark:bg-slate-800 px-3 py-2 text-sm">
-            <span className="font-mono text-slate-900 dark:text-slate-100">{staffCode}</span>
+          <div className="flex items-center justify-between rounded-md bg-slate-50 px-3 py-2 text-sm">
+            <span className="font-mono text-ink">{staffCode}</span>
             <button
               type="button"
               onClick={() => {
                 setStaffCode(null);
                 setError(null);
               }}
-              className="text-xs text-slate-500 dark:text-slate-400 underline"
+              className="text-xs text-slate-500 underline"
             >
               Rescan
             </button>
@@ -55,7 +55,7 @@ export default function BarcodeSignInForm() {
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">2. Scan your password barcode</label>
+        <label className="block text-sm font-medium text-slate-700 mb-1">2. Scan your password barcode</label>
         <ScannerInput
           ref={passwordInputRef}
           onScan={handlePasswordScan}
@@ -65,11 +65,11 @@ export default function BarcodeSignInForm() {
       </div>
 
       {error && (
-        <p className="text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900 rounded-md px-3 py-2">
+        <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-2">
           {error}
         </p>
       )}
-      {submitting && <p className="text-sm text-slate-500 dark:text-slate-400">Signing in…</p>}
+      {submitting && <p className="text-sm text-slate-500">Signing in…</p>}
     </div>
   );
 }
