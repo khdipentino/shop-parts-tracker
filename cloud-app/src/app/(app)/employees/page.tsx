@@ -25,12 +25,17 @@ export default async function EmployeesPage({
     <div className="space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-3">
         <h1 className="text-xl font-semibold text-ink">Employees</h1>
-        <Link
-          href="/employees/new"
-          className="bg-brand text-white rounded-md px-3 py-2 text-sm font-medium hover:bg-brand-dark"
-        >
-          + New employee
-        </Link>
+        <div className="flex items-center gap-3">
+          <Link href="/employees/print" className="text-sm text-ink underline">
+            Print all badges
+          </Link>
+          <Link
+            href="/employees/new"
+            className="bg-brand text-white rounded-md px-3 py-2 text-sm font-medium hover:bg-brand-dark"
+          >
+            + New employee
+          </Link>
+        </div>
       </div>
 
       <form className="flex gap-2">

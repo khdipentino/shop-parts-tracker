@@ -27,6 +27,7 @@ export default function AppShell({
     { href: "/parts", label: "Parts" },
     { href: "/employees", label: "Employees" },
     { href: "/invoices", label: "Receipt history" },
+    { href: "/reports", label: "Reports" },
   ];
   const adminNav: NavItem[] = [
     { href: "/admin/pending-requests", label: "Pending requests" },
